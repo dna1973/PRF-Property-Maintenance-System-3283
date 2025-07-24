@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "npm run lint && vite build",
     "lint": "eslint .",
-    "lint:error": "eslint . --quiet", 
+    "lint:error": "eslint . --quiet",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,7 +24,8 @@
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "react-select": "^5.8.0",
-    "react-datepicker": "^4.25.0"
+    "react-datepicker": "^4.25.0",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

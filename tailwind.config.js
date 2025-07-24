@@ -52,6 +52,10 @@ export default {
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
+      contrast: {
+        '105': '1.05',
+        '110': '1.1',
+      },
     },
   },
   plugins: [],

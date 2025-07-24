@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { format, addDays, subDays } from 'date-fns';
 
 const DataContext = createContext();
@@ -11,9 +11,14 @@ export const useData = () => {
   return context;
 };
 
+// Função simples para gerar IDs únicos
+const generateId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
 export const DataProvider = ({ children }) => {
   // Mock data
-  const [properties] = useState([
+  const [properties, setProperties] = useState([
     {
       id: 1,
       name: 'PRF - Superintendência Regional DF',
@@ -22,7 +27,8 @@ export const DataProvider = ({ children }) => {
       area: 2500,
       status: 'Ativo',
       lastMaintenance: subDays(new Date(), 15),
-      nextMaintenance: addDays(new Date(), 30)
+      nextMaintenance: addDays(new Date(), 30),
+      notes: 'Prédio principal da Superintendência Regional do DF'
     },
     {
       id: 2,
@@ -32,7 +38,8 @@ export const DataProvider = ({ children }) => {
       area: 800,
       status: 'Ativo',
       lastMaintenance: subDays(new Date(), 5),
-      nextMaintenance: addDays(new Date(), 60)
+      nextMaintenance: addDays(new Date(), 60),
+      notes: 'Posto localizado no KM 40 da BR-040'
     },
     {
       id: 3,
@@ -42,11 +49,12 @@ export const DataProvider = ({ children }) => {
       area: 1200,
       status: 'Em Manutenção',
       lastMaintenance: subDays(new Date(), 2),
-      nextMaintenance: addDays(new Date(), 90)
+      nextMaintenance: addDays(new Date(), 90),
+      notes: 'Base de apoio operacional na região de Taguatinga'
     }
   ]);
 
-  const [workOrders] = useState([
+  const [workOrders, setWorkOrders] = useState([
     {
       id: 'OS-2024-001',
       propertyId: 1,
@@ -88,7 +96,7 @@ export const DataProvider = ({ children }) => {
     }
   ]);
 
-  const [contracts] = useState([
+  const [contracts, setContracts] = useState([
     {
       id: 'CTR-2024-001',
       company: 'Empresa ABC Climatização',
@@ -98,7 +106,8 @@ export const DataProvider = ({ children }) => {
       value: 120000,
       status: 'Ativo',
       contact: 'Carlos Silva',
-      phone: '(61) 3333-4444'
+      phone: '(61) 3333-4444',
+      notes: 'Contrato anual de manutenção preventiva e corretiva dos sistemas de ar condicionado'
     },
     {
       id: 'CTR-2024-002',
@@ -109,11 +118,12 @@ export const DataProvider = ({ children }) => {
       value: 85000,
       status: 'Ativo',
       contact: 'Maria Santos',
-      phone: '(61) 2222-3333'
+      phone: '(61) 2222-3333',
+      notes: 'Contrato para manutenção da rede elétrica e instalações'
     }
   ]);
 
-  const [users] = useState([
+  const [users, setUsers] = useState([
     {
       id: 1,
       name: 'João Silva',
@@ -140,7 +150,125 @@ export const DataProvider = ({ children }) => {
     }
   ]);
 
-  const getDashboardStats = () => {
+  // Property operations
+  const addProperty = useCallback((property) => {
+    const newProperty = {
+      id: properties.length + 1,
+      lastMaintenance: new Date(),
+      nextMaintenance: addDays(new Date(), 90),
+      ...property
+    };
+    setProperties(prev => [...prev, newProperty]);
+    return newProperty;
+  }, [properties]);
+
+  const updateProperty = useCallback((updatedProperty) => {
+    setProperties(prev => 
+      prev.map(property => 
+        property.id === updatedProperty.id 
+          ? { ...property, ...updatedProperty } 
+          : property
+      )
+    );
+    return updatedProperty;
+  }, []);
+
+  const deleteProperty = useCallback((id) => {
+    setProperties(prev => prev.filter(property => property.id !== id));
+    return id;
+  }, []);
+
+  // Work order operations
+  const addWorkOrder = useCallback((workOrder) => {
+    const property = properties.find(p => p.id === parseInt(workOrder.propertyId));
+    const newWorkOrder = {
+      id: `OS-2024-${String(workOrders.length + 1).padStart(3, '0')}`,
+      propertyName: property ? property.name : 'Desconhecido',
+      createdDate: new Date(),
+      status: 'Aberta',
+      ...workOrder
+    };
+    setWorkOrders(prev => [...prev, newWorkOrder]);
+    return newWorkOrder;
+  }, [properties, workOrders]);
+
+  const updateWorkOrder = useCallback((updatedWorkOrder) => {
+    if (updatedWorkOrder.propertyId && !updatedWorkOrder.propertyName) {
+      const property = properties.find(p => p.id === parseInt(updatedWorkOrder.propertyId));
+      if (property) {
+        updatedWorkOrder.propertyName = property.name;
+      }
+    }
+
+    setWorkOrders(prev => 
+      prev.map(workOrder => 
+        workOrder.id === updatedWorkOrder.id 
+          ? { ...workOrder, ...updatedWorkOrder } 
+          : workOrder
+      )
+    );
+    return updatedWorkOrder;
+  }, [properties]);
+
+  const deleteWorkOrder = useCallback((id) => {
+    setWorkOrders(prev => prev.filter(workOrder => workOrder.id !== id));
+    return id;
+  }, []);
+
+  // Contract operations
+  const addContract = useCallback((contract) => {
+    const newContract = {
+      id: `CTR-2024-${String(contracts.length + 1).padStart(3, '0')}`,
+      ...contract
+    };
+    setContracts(prev => [...prev, newContract]);
+    return newContract;
+  }, [contracts]);
+
+  const updateContract = useCallback((updatedContract) => {
+    setContracts(prev => 
+      prev.map(contract => 
+        contract.id === updatedContract.id 
+          ? { ...contract, ...updatedContract } 
+          : contract
+      )
+    );
+    return updatedContract;
+  }, []);
+
+  const deleteContract = useCallback((id) => {
+    setContracts(prev => prev.filter(contract => contract.id !== id));
+    return id;
+  }, []);
+
+  // User operations
+  const addUser = useCallback((user) => {
+    const newUser = {
+      id: users.length + 1,
+      ...user
+    };
+    setUsers(prev => [...prev, newUser]);
+    return newUser;
+  }, [users]);
+
+  const updateUser = useCallback((updatedUser) => {
+    setUsers(prev => 
+      prev.map(user => 
+        user.id === updatedUser.id 
+          ? { ...user, ...updatedUser } 
+          : user
+      )
+    );
+    return updatedUser;
+  }, []);
+
+  const deleteUser = useCallback((id) => {
+    setUsers(prev => prev.filter(user => user.id !== id));
+    return id;
+  }, []);
+
+  // Dashboard data
+  const getDashboardStats = useCallback(() => {
     const totalProperties = properties.length;
     const activeProperties = properties.filter(p => p.status === 'Ativo').length;
     const totalWorkOrders = workOrders.length;
@@ -158,9 +286,9 @@ export const DataProvider = ({ children }) => {
       completedWorkOrders,
       activeContracts
     };
-  };
+  }, [properties, workOrders, contracts]);
 
-  const getChartData = () => {
+  const getChartData = useCallback(() => {
     const workOrdersByStatus = {
       'Aberta': workOrders.filter(wo => wo.status === 'Aberta').length,
       'Em Andamento': workOrders.filter(wo => wo.status === 'Em Andamento').length,
@@ -176,7 +304,7 @@ export const DataProvider = ({ children }) => {
       workOrdersByStatus,
       workOrdersByCategory
     };
-  };
+  }, [workOrders]);
 
   const value = {
     properties,
@@ -184,7 +312,19 @@ export const DataProvider = ({ children }) => {
     contracts,
     users,
     getDashboardStats,
-    getChartData
+    getChartData,
+    addProperty,
+    updateProperty,
+    deleteProperty,
+    addWorkOrder,
+    updateWorkOrder,
+    deleteWorkOrder,
+    addContract,
+    updateContract,
+    deleteContract,
+    addUser,
+    updateUser,
+    deleteUser
   };
 
   return (

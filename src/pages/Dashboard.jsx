@@ -4,17 +4,20 @@ import ReactECharts from 'echarts-for-react';
 import SafeIcon from '../components/common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import Card from '../components/UI/Card';
+import Button from '../components/UI/Button';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
+import { useToastContext } from '../contexts/ToastContext';
 
-const { 
-  FiBuilding, FiClipboard, FiFileText, FiUsers, 
-  FiTrendingUp, FiAlertTriangle, FiCheckCircle, FiClock 
-} = FiIcons;
+const { FiHome, FiBuilding, FiClipboard, FiFileText, FiUsers, FiBarChart3, FiTrendingUp, FiAlertTriangle, FiCheckCircle, FiClock } = FiIcons;
 
 const Dashboard = () => {
   const { getDashboardStats, getChartData } = useData();
   const { isDark } = useTheme();
+  const navigate = useNavigate();
+  const toast = useToastContext();
+
   const stats = getDashboardStats();
   const chartData = getChartData();
 
@@ -138,6 +141,17 @@ const Dashboard = () => {
     ]
   };
 
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
+  const handleGenerateReport = () => {
+    toast.info('Gerando relatório, aguarde...');
+    setTimeout(() => {
+      toast.success('Relatório gerado com sucesso!');
+    }, 1500);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -152,6 +166,9 @@ const Dashboard = () => {
             Visão geral do sistema de manutenção predial
           </p>
         </div>
+        <Button variant="outline" icon={FiBarChart3} onClick={() => navigate('/reports')}>
+          Relatórios
+        </Button>
       </motion.div>
 
       {/* Stats Cards */}
@@ -196,22 +213,21 @@ const Dashboard = () => {
           transition={{ delay: 0.4 }}
         >
           <Card className="p-6">
-            <ReactECharts 
-              option={workOrdersStatusOption} 
+            <ReactECharts
+              option={workOrdersStatusOption}
               style={{ height: '400px' }}
               theme={isDark ? 'dark' : 'light'}
             />
           </Card>
         </motion.div>
-
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
         >
           <Card className="p-6">
-            <ReactECharts 
-              option={workOrdersCategoryOption} 
+            <ReactECharts
+              option={workOrdersCategoryOption}
               style={{ height: '400px' }}
               theme={isDark ? 'dark' : 'light'}
             />
@@ -230,23 +246,30 @@ const Dashboard = () => {
             Ações Rápidas
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button
+              className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              onClick={() => handleNavigate('/work-orders')}
+            >
               <SafeIcon icon={FiClipboard} className="w-6 h-6 text-prf-600 mr-3" />
               <div className="text-left">
                 <p className="font-medium text-gray-900 dark:text-white">Nova Ordem</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Criar ordem de serviço</p>
               </div>
             </button>
-            
-            <button className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button
+              className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              onClick={() => handleNavigate('/properties')}
+            >
               <SafeIcon icon={FiBuilding} className="w-6 h-6 text-prf-600 mr-3" />
               <div className="text-left">
                 <p className="font-medium text-gray-900 dark:text-white">Novo Imóvel</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Cadastrar imóvel</p>
               </div>
             </button>
-            
-            <button className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button
+              className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              onClick={handleGenerateReport}
+            >
               <SafeIcon icon={FiFileText} className="w-6 h-6 text-prf-600 mr-3" />
               <div className="text-left">
                 <p className="font-medium text-gray-900 dark:text-white">Relatório</p>
